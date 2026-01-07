@@ -9,8 +9,8 @@ const editingId = ref(null)
 const editingText = ref('')
 const selectedItem = ref(null)
 
-// 后端API地址
-const API_BASE_URL = 'http://localhost:3000/api'
+// 后端API地址 - 使用相对路径确保在任何环境都能正确连接
+const API_BASE_URL = '/api'
 
 // 从后端加载数据
 const loadItems = async () => {
