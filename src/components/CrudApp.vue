@@ -21,6 +21,7 @@ const isEditListDialogVisible = ref(false)
 const isResultDialogVisible = ref(false)
 const selectedItem = ref(null)
 const tableRowExpanded = ref({})
+const isSidebarOpen = ref(false)
 
 // 计算属性
 const filteredItems = computed(() => {
@@ -252,9 +253,19 @@ onMounted(() => {
       <!-- 页面头部 -->
       <header class="app-header">
         <div class="header-content">
-          <div class="header-brand">
-            <el-icon class="brand-icon"><StarFilled /></el-icon>
-            <h1 class="app-title">随机抽取系统</h1>
+          <div class="header-left">
+            <el-button 
+              link 
+              :icon="List" 
+              @click="isSidebarOpen = true"
+              class="sidebar-toggle-btn"
+            >
+              列表
+            </el-button>
+            <div class="header-brand">
+              <el-icon class="brand-icon"><StarFilled /></el-icon>
+              <h1 class="app-title">随机抽取</h1>
+            </div>
           </div>
           <div class="header-actions">
             <el-button 
@@ -265,7 +276,7 @@ onMounted(() => {
               :class="['random-btn', { 'btn-disabled': visibleItemsForRandom.length === 0 }]"
             >
               <el-icon class="icon"><StarFilled /></el-icon>
-              随机抽取
+              <span class="random-text">抽取</span>
               <span class="btn-badge">({{ visibleItemsForRandom.length }}/{{ filteredItems.length }})</span>
             </el-button>
           </div>
@@ -274,8 +285,13 @@ onMounted(() => {
 
       <!-- 主要内容区 -->
       <main class="main-content">
-        <!-- 左侧边栏：列表管理 -->
-        <aside class="sidebar">
+        <!-- 左侧边栏：列表管理（移动端抽屉式） -->
+        <el-drawer
+          v-model="isSidebarOpen"
+          direction="left"
+          size="85%"
+          class="list-drawer"
+        >
           <div class="sidebar-wrapper">
             <div class="sidebar-header">
               <h3 class="sidebar-title">列表管理</h3>
@@ -297,7 +313,7 @@ onMounted(() => {
                 :class="{ 'active-list': list.id === selectedListId.value }"
                 class="list-card"
                 shadow="hover"
-                @click="changeList(list.id)"
+                @click="changeList(list.id); isSidebarOpen = false"
               >
                 <template #header>
                   <div class="card-header">
@@ -307,7 +323,7 @@ onMounted(() => {
                         link 
                         size="small" 
                         :icon="EditPen" 
-                        @click="openEditListDialog(list)"
+                        @click="openEditListDialog(list); isSidebarOpen = false"
                       />
                       <el-button 
                         link 
@@ -328,7 +344,7 @@ onMounted(() => {
                   <el-button 
                     type="primary" 
                     size="small" 
-                    @click="changeList(list.id); randomSelect()"
+                    @click="changeList(list.id); randomSelect(); isSidebarOpen = false"
                     class="quick-select-btn"
                   >
                     <el-icon><Star /></el-icon>
@@ -338,9 +354,9 @@ onMounted(() => {
               </el-card>
             </div>
           </div>
-        </aside>
+        </el-drawer>
 
-        <!-- 右侧内容区：条目管理 -->
+        <!-- 内容区：条目管理 -->
         <section class="content-section">
           <!-- 当前列表信息卡片 -->
           <el-card class="info-card">
@@ -398,39 +414,11 @@ onMounted(() => {
               :data="filteredItems" 
               style="width: 100%"
               :row-key="row => row.id"
-              :expand-row-keys="Object.keys(tableRowExpanded).map(Number)"
-              @expand-change="(row, expandedRows) => {
-                if (expandedRows.includes(row)) {
-                  tableRowExpanded[row.id] = true
-                } else {
-                  delete tableRowExpanded[row.id]
-                }
-              }"
               stripe
               border
-              class="items-table"
+              class="items-table mobile-table"
             >
-              <el-table-column type="expand">
-                <template #default="scope">
-                  <div class="expanded-content">
-                    <div class="expanded-item">
-                      <span class="label">创建时间:</span>
-                      <span class="value">{{ new Date(scope.row.createdAt).toLocaleString() }}</span>
-                    </div>
-                    <div class="expanded-item">
-                      <span class="label">更新时间:</span>
-                      <span class="value">{{ new Date(scope.row.updatedAt).toLocaleString() }}</span>
-                    </div>
-                    <div class="expanded-item">
-                      <span class="label">状态:</span>
-                      <span class="value">{{ scope.row.isHidden ? '已隐藏' : '正常' }}</span>
-                    </div>
-                  </div>
-                </template>
-              </el-table-column>
-              
-              <el-table-column prop="id" label="ID" width="80" align="center" />
-              <el-table-column prop="text" label="内容" min-width="350">
+              <el-table-column prop="text" label="内容" min-width="200">
                 <template #default="scope">
                   <div class="item-text">
                     <span :class="{ 'hidden-text': scope.row.isHidden }">
@@ -447,45 +435,34 @@ onMounted(() => {
                   </div>
                 </template>
               </el-table-column>
-              <el-table-column prop="isHidden" label="状态" width="120" align="center">
+              <el-table-column label="操作" width="200" align="center" fixed="right">
                 <template #default="scope">
-                  <el-tag 
-                    :type="scope.row.isHidden ? 'warning' : 'success'" 
-                    size="small"
-                  >
-                    {{ scope.row.isHidden ? '已隐藏' : '正常' }}
-                  </el-tag>
-                </template>
-              </el-table-column>
-              <el-table-column label="操作" width="280" align="center">
-                <template #default="scope">
-                  <el-button 
-                    type="primary" 
-                    size="small" 
-                    @click="openEditItemDialog(scope.row)"
-                    class="table-btn"
-                  >
-                    <el-icon><EditPen /></el-icon>
-                    编辑
-                  </el-button>
-                  <el-button 
-                    :type="scope.row.isHidden ? 'success' : 'warning'" 
-                    size="small" 
-                    @click="toggleItemHidden(scope.row)"
-                    class="table-btn"
-                  >
-                    <el-icon :component="scope.row.isHidden ? View : Hide" />
-                    {{ scope.row.isHidden ? '显示' : '隐藏' }}
-                  </el-button>
-                  <el-button 
-                    type="danger" 
-                    size="small" 
-                    @click="deleteItem(scope.row.id)"
-                    class="table-btn"
-                  >
-                    <el-icon><Delete /></el-icon>
-                    删除
-                  </el-button>
+                  <div class="table-actions">
+                    <el-button 
+                      type="primary" 
+                      size="small" 
+                      @click="openEditItemDialog(scope.row)"
+                      class="table-btn"
+                    >
+                      <el-icon><EditPen /></el-icon>
+                    </el-button>
+                    <el-button 
+                      :type="scope.row.isHidden ? 'success' : 'warning'" 
+                      size="small" 
+                      @click="toggleItemHidden(scope.row)"
+                      class="table-btn"
+                    >
+                      <el-icon :component="scope.row.isHidden ? View : Hide" />
+                    </el-button>
+                    <el-button 
+                      type="danger" 
+                      size="small" 
+                      @click="deleteItem(scope.row.id)"
+                      class="table-btn"
+                    >
+                      <el-icon><Delete /></el-icon>
+                    </el-button>
+                  </div>
                 </template>
               </el-table-column>
             </el-table>
@@ -695,7 +672,27 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 24px;
+  padding: 0 16px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sidebar-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 16px;
+  color: #667eea;
+  padding: 8px 12px;
+  margin-right: 5px;
+}
+
+.random-text {
+  display: none;
 }
 
 .header-brand {
@@ -770,10 +767,6 @@ onMounted(() => {
   .app-container {
     padding: 0 15px;
   }
-  
-  .sidebar {
-    width: 280px;
-  }
 }
 
 @media (max-width: 992px) {
@@ -781,26 +774,49 @@ onMounted(() => {
     flex-direction: column;
   }
   
-  .sidebar {
-    width: 100%;
-    height: auto;
-    max-height: 300px;
-    overflow-y: auto;
-  }
-  
   .content-section {
     padding: 0;
   }
-  
-  .header-content {
-    flex-direction: column;
-    gap: 15px;
-    text-align: center;
-  }
-  
-  .header-brand {
-    justify-content: center;
-  }
+}
+
+/* 移动端表格样式 */
+.mobile-table {
+  font-size: 14px;
+}
+
+.table-actions {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+}
+
+.table-btn {
+  padding: 5px 10px;
+  min-width: auto;
+}
+
+/* 抽屉式侧边栏样式 */
+.list-drawer {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.list-drawer .el-drawer__body {
+  padding: 0;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.list-drawer .list-card {
+  margin-bottom: 15px;
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.list-drawer .active-list {
+  border-left: 4px solid #667eea;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }
 
 @media (max-width: 768px) {
