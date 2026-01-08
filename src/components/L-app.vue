@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { 
   StarFilled, Star, Plus, EditPen, Delete, CirclePlus, Hide, View, FolderOpened 
@@ -19,6 +19,8 @@ const isEditItemDialogVisible = ref(false)
 const isEditListDialogVisible = ref(false)
 const isResultDialogVisible = ref(false)
 const selectedItem = ref(null)
+const pollInterval = ref(null)
+const pollTime = 5000 // 5秒轮询一次
 
 // 计算属性
 const filteredItems = computed(() => items.value.filter(i => i.listId === selectedListId.value))
@@ -32,6 +34,23 @@ const loadLists = async () => {
 const loadItems = async () => {
   try { items.value = await itemApi.getAllItems() } 
   catch { ElMessage.error('加载条目失败') }
+}
+
+// 开始轮询
+const startPolling = () => {
+  if (pollInterval.value) return
+  pollInterval.value = setInterval(() => {
+    loadLists()
+    loadItems()
+  }, pollTime)
+}
+
+// 停止轮询
+const stopPolling = () => {
+  if (pollInterval.value) {
+    clearInterval(pollInterval.value)
+    pollInterval.value = null
+  }
 }
 
 // 添加条目
@@ -123,7 +142,15 @@ const randomSelect = () => {
   isResultDialogVisible.value = true
 }
 
-onMounted(() => { loadLists(); loadItems() })
+onMounted(() => {
+  loadLists()
+  loadItems()
+  startPolling()
+})
+
+onUnmounted(() => {
+  stopPolling()
+})
 </script>
 
 <template>
