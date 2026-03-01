@@ -1,0 +1,12 @@
+node_modules
+dist
+.env
+.git
+.gitignore
+.vscode
+*.md
+*.log
+.DS_Store
+test-create-item.js
+改造需求询问.md
+README.md
