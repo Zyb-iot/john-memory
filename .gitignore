@@ -55,3 +55,6 @@ backend/.env
 *.tmp
 *.temp
 .cache/
+.env-ssh
+.mcp.json
+.claude/settings.json
