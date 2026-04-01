@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ssh -V)",
+      "Bash(sshpass:*)",
+      "Bash(ssh -o StrictHostKeyChecking=no root@39.105.135.252 \"mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys\")",
+      "Bash(npm search:*)",
+      "Bash(npx -y @aiondadotcom/mcp-ssh --help)",
+      "Bash(npm show:*)",
+      "Bash(export PATH=\"$HOME/.local/bin:$PATH\")",
+      "Bash(mcp --version)",
+      "Bash(npx -y @fangjunjie/ssh-mcp-server --host 39.105.135.252 --port 22 --username root --password wobugudan521.)",
+      "Bash(echo '{\"\"\"\"jsonrpc\"\"\"\":\"\"\"\"2.0\"\"\"\",\"\"\"\"id\"\"\"\":1,\"\"\"\"method\"\"\"\":\"\"\"\"tools/call\"\"\"\",\"\"\"\"params\"\"\"\":{\"\"\"\"name\"\"\"\":\"\"\"\"execute-command\"\"\"\",\"\"\"\"arguments\"\"\"\":{\"\"\"\"cmdString\"\"\"\":\"\"\"\"systemctl list-units --all | grep -i openclaw; systemctl list-units --all | grep -i admin; crontab -l 2>/dev/null; crontab -u admin -l 2>/dev/null; ls /etc/systemd/system/ | grep -i openclaw; ls /etc/init.d/ | grep -i openclaw; cat /proc/$\\(pgrep -u admin openclaw-gateway | head -1\\)/cmdline | tr \\\\\"\"\"\"\\\\\\\\0\\\\\"\"\"\" \\\\\"\"\"\" \\\\\"\"\"\"\"\"\"\"}}}')"
+    ]
+  }
+}
